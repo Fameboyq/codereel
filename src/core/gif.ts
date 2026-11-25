@@ -86,12 +86,16 @@ function buildGlobalPalette(frames: GifFrameInput[], maxColors = 256): {
       const box = boxes[i]!;
       if (box.colors.length <= 1) continue;
       const { maxRange } = getChannelRange(box);
-      if (maxRange > bestScore) {
-        bestScore = maxRange;
+      if (maxRange <= 2) continue;
+      let boxWeight = 0;
+      for (let j = 0; j < box.counts.length; j++) boxWeight += box.counts[j]!;
+      const score = Math.sqrt(boxWeight) * maxRange;
+      if (score > bestScore) {
+        bestScore = score;
         bestIdx = i;
       }
     }
-    if (bestIdx === -1 || bestScore <= 2) break;
+    if (bestIdx === -1 || bestScore <= 0) break;
 
     const target = boxes.splice(bestIdx, 1)[0]!;
     const { rRange, gRange, bRange } = getChannelRange(target);
@@ -296,12 +300,39 @@ export function encodeGif(
 
   const pixelCount = width * height;
   const indices = new Uint8Array(pixelCount);
+  const bayer4x4 = [
+    -7.5, 0.5, -5.5, 2.5,
+    4.5, -3.5, 6.5, -1.5,
+    -4.5, 3.5, -6.5, 1.5,
+    7.5, -0.5, 5.5, -2.5,
+  ];
+  const clampByte = (v: number) => (v < 0 ? 0 : v > 255 ? 255 : v);
 
   for (const frame of frames) {
     const rgba = frame.rgba;
-    for (let p = 0; p < pixelCount; p++) {
-      const off = p * 4;
-      indices[p] = lut[packRgb555(rgba[off]!, rgba[off + 1]!, rgba[off + 2]!)]!;
+    for (let y = 0; y < height; y++) {
+      const rowBase = y * width;
+      const yB = (y & 3) << 2;
+      for (let x = 0; x < width; x++) {
+        const p = rowBase + x;
+        const off = p * 4;
+        const r = rgba[off]!;
+        const g = rgba[off + 1]!;
+        const b = rgba[off + 2]!;
+        const baseIdx = lut[packRgb555(r, g, b)]!;
+        const pr = palette[baseIdx * 3]!;
+        const pg = palette[baseIdx * 3 + 1]!;
+        const pb = palette[baseIdx * 3 + 2]!;
+        const err = (r - pr) * (r - pr) + (g - pg) * (g - pg) + (b - pb) * (b - pb);
+
+        if (err <= 18) {
+          indices[p] = baseIdx;
+        } else {
+          const d = bayer4x4[yB | (x & 3)]!;
+          indices[p] =
+            lut[packRgb555(clampByte(r + d), clampByte(g + d), clampByte(b + d))]!;
+        }
+      }
     }
 
     // Graphic Control Extension

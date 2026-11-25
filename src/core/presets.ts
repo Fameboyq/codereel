@@ -15,7 +15,7 @@ export const PRESET_DECKS: Record<string, DeckConfig> = {
     showBadge: true,
     aspectRatio: '16:9',
     easing: 'easeInOutCubic',
-    watermark: 'codereel.dev',
+    watermark: '',
     slides: [
       {
         id: 'step-1',

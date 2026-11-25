@@ -210,8 +210,12 @@ export function buildStandaloneHtml(deck: DeckConfig): string {
         badge = seg.eased < 0.5 ? (sA.badge || '') : (sB.badge || '');
       }
 
-      const winW = Math.min(w - TIMELINE.padding * 2, Math.max(420, padX * 2 + gutterW + colsCount * charW + 18));
-      const winH = Math.min(h - TIMELINE.padding * 2, Math.max(180, titleH + padY * 2 + linesCount * linePx));
+      const maxWinW = w - TIMELINE.padding * 2;
+      const maxWinH = h - TIMELINE.padding * 2;
+      const minWinW = Math.min(maxWinW, Math.max(540, Math.round(w * 0.56)));
+      const minWinH = Math.min(maxWinH, Math.max(220, Math.round(h * 0.36)));
+      const winW = Math.min(maxWinW, Math.max(minWinW, padX * 2 + gutterW + colsCount * charW + 24));
+      const winH = Math.min(maxWinH, Math.max(minWinH, titleH + padY * 2 + linesCount * linePx + 8));
       const winX = Math.round((w - winW) / 2), winY = Math.round((h - winH) / 2);
 
       ctx.save();

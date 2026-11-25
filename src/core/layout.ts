@@ -369,8 +369,10 @@ export function renderCompiledFrame(
 
   const maxWinW = canvasWidth - timeline.padding * 2;
   const maxWinH = canvasHeight - timeline.padding * 2;
-  const desiredWinW = Math.max(420, codePadX * 2 + gutterW + activeCols * charW + 18);
-  const desiredWinH = Math.max(180, titleBarH + codePadY * 2 + activeLines * linePx);
+  const minWinW = Math.min(maxWinW, Math.max(540, Math.round(canvasWidth * 0.56)));
+  const minWinH = Math.min(maxWinH, Math.max(220, Math.round(canvasHeight * 0.36)));
+  const desiredWinW = Math.max(minWinW, codePadX * 2 + gutterW + activeCols * charW + 24);
+  const desiredWinH = Math.max(minWinH, titleBarH + codePadY * 2 + activeLines * linePx + 8);
 
   const winW = Math.min(maxWinW, desiredWinW);
   const winH = Math.min(maxWinH, desiredWinH);

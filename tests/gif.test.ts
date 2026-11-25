@@ -58,6 +58,24 @@ describe('GIF89a encoder', () => {
     expect(gceCount).toBe(frames.length);
   });
 
+  it('encodes smooth gradient frames cleanly with dithered quantization', () => {
+    const w = 64;
+    const h = 48;
+    const rgba = new Uint8ClampedArray(w * h * 4);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const idx = (y * w + x) * 4;
+        rgba[idx] = Math.round((x / (w - 1)) * 120 + 15);
+        rgba[idx + 1] = Math.round((y / (h - 1)) * 90 + 20);
+        rgba[idx + 2] = Math.round(((x + y) / (w + h - 2)) * 180 + 40);
+        rgba[idx + 3] = 255;
+      }
+    }
+    const gif = encodeGif(w, h, [{ rgba, delayMs: 80 }]);
+    expect(String.fromCharCode(...gif.slice(0, 6))).toBe('GIF89a');
+    expect(gif[gif.length - 1]).toBe(0x3b);
+  });
+
   it('rejects empty frame arrays and mismatched RGBA buffer lengths', () => {
     expect(() => encodeGif(16, 16, [])).toThrow(/At least one frame/);
     expect(() =>
