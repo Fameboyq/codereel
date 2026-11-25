@@ -1,0 +1,38 @@
+{
+  "title": "Ship With CodeReel",
+  "themeId": "catppuccin-mocha",
+  "backgroundId": "emerald",
+  "fontFamily": "\"JetBrains Mono\", \"Fira Code\", ui-monospace, monospace",
+  "fontSize": 18,
+  "lineHeight": 1.62,
+  "padding": 56,
+  "windowStyle": "terminal",
+  "showLineNumbers": false,
+  "showDiffGlow": false,
+  "showBadge": true,
+  "aspectRatio": "16:9",
+  "easing": "easeInOutCubic",
+  "watermark": "npx codereel",
+  "slides": [
+    {
+      "id": "term-1",
+      "title": "bash — ~/repo",
+      "badge": "1 · Extract commits",
+      "language": "bash",
+      "durationMs": 2200,
+      "transitionMs": 700,
+      "typingMode": true,
+      "code": "$ npx codereel from-git HEAD~4..HEAD --file src/server.ts\n# Scanning 4 commits...\n# Wrote codereel.html (4 slides)"
+    },
+    {
+      "id": "term-2",
+      "title": "bash — ~/repo",
+      "badge": "2 · Open in Web Studio",
+      "language": "bash",
+      "durationMs": 2200,
+      "transitionMs": 700,
+      "typingMode": true,
+      "code": "$ npx codereel from-git HEAD~4..HEAD --studio\n# CodeReel Studio running at http://127.0.0.1:4321\n# Export GIF / WebM / HTML directly in browser"
+    }
+  ]
+}

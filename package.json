@@ -1,0 +1,52 @@
+{
+  "name": "codereel",
+  "version": "1.0.0",
+  "description": "Keynote Magic-Move animations for code, diffs, and git commits — zero-backend Web Studio + npx CLI",
+  "homepage": "https://fameboyq.github.io/codereel/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Fameboyq/codereel.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Fameboyq/codereel/issues"
+  },
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "codereel": "./dist/cli/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build:web": "vite build",
+    "build:cli": "tsc -p tsconfig.cli.json",
+    "build": "npm run build:web && npm run build:cli",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.cli.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "start": "node ./dist/cli/index.js"
+  },
+  "keywords": [
+    "code-animation",
+    "magic-move",
+    "syntax-highlighting",
+    "git-diff",
+    "developer-tools",
+    "cli",
+    "gif-exporter",
+    "presentation"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.3",
+    "vitest": "^2.1.8"
+  }
+}

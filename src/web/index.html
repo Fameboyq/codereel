@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeReel — Magic-Move Code &amp; Git Animator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <div>
+          <h1>CodeReel</h1>
+          <p class="brand-sub">Magic-Move Code &amp; Git Animator · Zero Backend</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <label class="select-pill" title="Load a showcase preset">
+          <span>Preset</span>
+          <select id="presetSelect">
+            <option value="async-refactor">Async Refactor (TS)</option>
+            <option value="cli-launch">Terminal Typing (Bash)</option>
+            <option value="rust-safety">Zero-Copy Iterator (Rust)</option>
+          </select>
+        </label>
+
+        <button id="importBtn" class="btn btn-ghost">Import Diff / GitHub / MD</button>
+        <button id="shareBtn" class="btn btn-ghost">Share URL</button>
+
+        <div class="export-group">
+          <button id="exportPngBtn" class="btn btn-ghost" title="Download current frame as PNG">PNG</button>
+          <button id="exportHtmlBtn" class="btn btn-ghost" title="Download self-contained HTML player">HTML</button>
+          <button id="exportWebmBtn" class="btn btn-ghost" title="Record WebM video">WebM</button>
+          <button id="exportGifBtn" class="btn btn-primary" title="Render animated GIF in browser">Export GIF</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="stage-column">
+        <div class="canvas-stage" id="canvasStage">
+          <canvas id="previewCanvas" width="1280" height="720"></canvas>
+          <div class="export-overlay hidden" id="exportOverlay">
+            <div class="export-card">
+              <div class="spinner"></div>
+              <p id="exportStatusText">Rendering frames...</p>
+              <div class="progress-track">
+                <div class="progress-bar" id="exportProgressBar"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="transport-bar">
+          <button id="playPauseBtn" class="btn btn-primary btn-sm">Pause</button>
+          <button id="prevSlideBtn" class="btn btn-ghost btn-sm" title="Previous slide (←)">Prev</button>
+          <button id="nextSlideBtn" class="btn btn-ghost btn-sm" title="Next slide (→)">Next</button>
+          <input id="timelineScrubber" type="range" min="0" max="5000" value="0" step="10" aria-label="Timeline scrubber" />
+          <span id="timeReadout" class="time-readout">0.0s / 0.0s</span>
+          <button id="speedToggleBtn" class="btn btn-ghost btn-sm" title="Playback speed">1x</button>
+        </div>
+
+        <div class="storyboard-panel">
+          <div class="storyboard-header">
+            <h2>Storyboard Slides</h2>
+            <div class="storyboard-actions">
+              <button id="duplicateSlideBtn" class="btn btn-ghost btn-sm">Duplicate Slide</button>
+              <button id="addSlideBtn" class="btn btn-primary btn-sm">+ Add Slide</button>
+            </div>
+          </div>
+          <div id="slideStrip" class="slide-strip"></div>
+        </div>
+      </section>
+
+      <aside class="inspector-column">
+        <div class="inspector-tabs" role="tablist">
+          <button class="tab-btn active" data-tab="slide" role="tab" aria-selected="true">Slide Code</button>
+          <button class="tab-btn" data-tab="style" role="tab" aria-selected="false">Studio Style</button>
+        </div>
+
+        <div id="tabSlide" class="inspector-body">
+          <div class="field-row two-col">
+            <label class="field">
+              <span>Window Title</span>
+              <input id="slideTitleInput" type="text" placeholder="src/index.ts" />
+            </label>
+            <label class="field">
+              <span>Language</span>
+              <select id="slideLanguageSelect">
+                <option value="typescript">TypeScript</option>
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="rust">Rust</option>
+                <option value="go">Go</option>
+                <option value="bash">Bash / Terminal</option>
+                <option value="json">JSON</option>
+                <option value="sql">SQL</option>
+                <option value="html">HTML</option>
+                <option value="css">CSS</option>
+                <option value="diff">Unified Diff</option>
+                <option value="plaintext">Plain Text</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="field-row two-col">
+            <label class="field">
+              <span>Step Badge</span>
+              <input id="slideBadgeInput" type="text" placeholder="Step 1 · Refactor" />
+            </label>
+            <label class="field">
+              <span>Spotlight Lines</span>
+              <input id="slideHighlightInput" type="text" placeholder="e.g. 2, 4-6" />
+            </label>
+          </div>
+
+          <label class="field code-field">
+            <div class="field-head">
+              <span>Code</span>
+              <span class="hint">Tab inserts 2 spaces</span>
+            </div>
+            <textarea id="slideCodeInput" spellcheck="false" rows="13"></textarea>
+          </label>
+
+          <div class="field-row two-col">
+            <label class="field">
+              <span>Hold Duration: <strong id="holdValueLabel">1600ms</strong></span>
+              <input id="slideDurationInput" type="range" min="400" max="6000" step="100" />
+            </label>
+            <label class="field">
+              <span>Morph Speed: <strong id="morphValueLabel">850ms</strong></span>
+              <input id="slideTransitionInput" type="range" min="200" max="2400" step="50" />
+            </label>
+          </div>
+
+          <label class="toggle-row">
+            <input id="slideTypingCheckbox" type="checkbox" />
+            <span>Terminal / Keystroke Typing Reveal on Hold</span>
+          </label>
+        </div>
+
+        <div id="tabStyle" class="inspector-body hidden">
+          <div class="field">
+            <span>Deck Title</span>
+            <input id="deckTitleInput" type="text" placeholder="My CodeReel" />
+          </div>
+
+          <div class="field">
+            <span>Syntax Theme</span>
+            <div id="themeGrid" class="swatch-grid"></div>
+          </div>
+
+          <div class="field">
+            <span>Studio Background</span>
+            <div id="backgroundGrid" class="swatch-grid"></div>
+          </div>
+
+          <div class="field-row two-col">
+            <label class="field">
+              <span>Aspect Ratio</span>
+              <select id="aspectRatioSelect">
+                <option value="16:9">16:9 (1280×720)</option>
+                <option value="1:1">1:1 (960×960)</option>
+                <option value="9:16">9:16 (Reels/Shorts)</option>
+                <option value="4:3">4:3 (1080×810)</option>
+                <option value="auto">Auto Fit</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Window Chrome</span>
+              <select id="windowStyleSelect">
+                <option value="macos">macOS Dots</option>
+                <option value="terminal">Terminal (&gt;_)</option>
+                <option value="minimal">Minimal Header</option>
+                <option value="none">Frameless</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="field-row two-col">
+            <label class="field">
+              <span>Morph Easing</span>
+              <select id="easingSelect">
+                <option value="easeInOutCubic">Cubic Smooth</option>
+                <option value="spring">Spring Bounce</option>
+                <option value="easeOutQuart">Snappy Quart</option>
+                <option value="linear">Linear</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Watermark</span>
+              <input id="watermarkInput" type="text" placeholder="github.com/you/repo" />
+            </label>
+          </div>
+
+          <div class="field-row two-col">
+            <label class="field">
+              <span>Font Size: <strong id="fontSizeLabel">18px</strong></span>
+              <input id="fontSizeInput" type="range" min="13" max="28" step="1" />
+            </label>
+            <label class="field">
+              <span>Stage Padding: <strong id="paddingLabel">56px</strong></span>
+              <input id="paddingInput" type="range" min="20" max="110" step="4" />
+            </label>
+          </div>
+
+          <div class="toggles-stack">
+            <label class="toggle-row">
+              <input id="showLineNumbersCheckbox" type="checkbox" />
+              <span>Show Line Numbers</span>
+            </label>
+            <label class="toggle-row">
+              <input id="showDiffGlowCheckbox" type="checkbox" />
+              <span>Highlight Added/Removed Tokens on Morph</span>
+            </label>
+            <label class="toggle-row">
+              <input id="showBadgeCheckbox" type="checkbox" />
+              <span>Show Slide Step Badges</span>
+            </label>
+          </div>
+
+          <div class="field-row two-col">
+            <button id="exportJsonBtn" class="btn btn-ghost btn-sm">Download Deck JSON</button>
+            <button id="resetDeckBtn" class="btn btn-ghost btn-sm">Reset to Preset</button>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Import Modal -->
+  <div id="importModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="importModalTitle">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="importModalTitle">Import Into Storyboard</h2>
+        <button id="closeImportModalBtn" class="btn btn-ghost btn-sm">Close</button>
+      </div>
+      <div class="modal-body">
+        <div class="import-section">
+          <h3>Load Public GitHub Commit</h3>
+          <p class="muted">Paste any GitHub commit URL (e.g. <code>https://github.com/owner/repo/commit/sha</code>) — fetched directly in browser.</p>
+          <div class="inline-form">
+            <input id="githubCommitUrlInput" type="url" placeholder="https://github.com/vitejs/vite/commit/..." />
+            <button id="fetchGithubCommitBtn" class="btn btn-primary btn-sm">Fetch Commit</button>
+          </div>
+        </div>
+
+        <div class="import-section">
+          <h3>Paste Unified Git Diff, Markdown Code Blocks, or Deck JSON</h3>
+          <p class="muted">A unified diff turns into Before → After Magic Move slides; fenced Markdown blocks turn into sequential slides.</p>
+          <textarea id="importPayloadInput" rows="10" spellcheck="false" placeholder="Paste git diff output, ```ts ... ``` markdown blocks, or CodeReel JSON..."></textarea>
+        </div>
+        <p id="importErrorText" class="error-text hidden"></p>
+      </div>
+      <div class="modal-foot">
+        <button id="applyImportBtn" class="btn btn-primary">Import &amp; Animate</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>
